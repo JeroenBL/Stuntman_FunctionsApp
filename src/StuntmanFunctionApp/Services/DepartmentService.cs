@@ -32,7 +32,7 @@ namespace StuntmanFunctionApp.Services
                     st.DepartmentExternalId = departmentExternalId;
                 }
 
-                _departments.Add(new DepartmentModel { DisplayName = currentStuntman.Department, ExternalId = departmentExternalId, ManagerExternalId = currentStuntman.ExternalId });
+                _departments.Add(new DepartmentModel { Id = departmentExternalId, DisplayName = currentStuntman.Department, ExternalId = departmentExternalId, ManagerExternalId = currentStuntman.ExternalId });
             }
 
             return _departments;

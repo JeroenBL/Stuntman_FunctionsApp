@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using StuntmanFunctionApp.Services;
+using StuntmanFunctionApp.Models;
+using System.Collections.Generic;
 
 namespace StuntmanFunctionApp
 {
@@ -15,16 +17,30 @@ namespace StuntmanFunctionApp
     {
         [FunctionName("Stuntman")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "stuntman")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "stuntman")] HttpRequest req,
             ILogger log)
-        {
-            var stuntmanService = new StuntmanService();
-            var companyName = stuntmanService.GetRandomCompany();
-            var stuntman = stuntmanService.CreateStuntman(100, companyName, "enyoi", "local", "en");
-     
-            var data = JsonConvert.SerializeObject(stuntman);
+        { 
+            List<object> resultList = new List<object>();
+            List<object> stuntman = new List<object>();
+            List<object> departments = new List<object>();
+            resultList.Add(stuntman);
+            resultList.Add(departments);
 
-            return new OkObjectResult(data);
+            //Read Request Body
+            var content = await new StreamReader(req.Body).ReadToEndAsync();
+            var body = JsonConvert.DeserializeObject<UpSertModel>(content);
+            
+            var stuntmanService = new StuntmanService();
+            var departmentService = new DepartmentService();
+            var generatedStuntman = stuntmanService.CreateStuntman(body.Amount, body.CompanyName, body.DomainName, body.DomainSuffix, body.Locale);
+            var generatedDepartments = departmentService.CreateDepartmentsAndAssignManager(generatedStuntman);
+
+            stuntman.AddRange(generatedStuntman);
+            departments.AddRange(generatedDepartments);
+
+            var returnData = JsonConvert.SerializeObject(resultList);
+
+            return new OkObjectResult(returnData);
         }
     }
 }
